@@ -22,8 +22,5 @@ COPY . .
 # Create static directory if not present
 RUN mkdir -p static chroma_db
 
-# Expose Hugging Face Space default port
-EXPOSE 7860
-
-# Start FastAPI application listening on port 7860
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Start FastAPI application listening on PORT assigned by host (defaults to 10000)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}"]
