@@ -3,7 +3,6 @@ import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 import chromadb
-from fastembed import TextEmbedding
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,23 +35,31 @@ app.add_middleware(
 )
 
 # Lazy loading variables
-model = None
 chroma_client = None
 collection = None
 
+def get_embedding(text: str) -> list:
+    """Generate vector embedding using Gemini Cloud API (0 MB server RAM)"""
+    try:
+        response = genai.embed_content(
+            model="models/text-embedding-004",
+            content=text
+        )
+        return response['embedding']
+    except Exception as e:
+        print(f"[EMBED ERROR] {e}")
+        return [0.0] * 768
+
 def get_resources():
-    """Lazily load and cache lightweight ONNX models and database connections"""
-    global model, chroma_client, collection
-    if model is None:
-        print("Loading lightweight fastembed ONNX model...")
-        model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+    """Lazily load database connections"""
+    global chroma_client, collection
     if chroma_client is None:
         print("Connecting to ChromaDB...")
         current_dir = os.path.dirname(os.path.abspath(__file__))
         chroma_db_path = os.path.join(current_dir, "chroma_db")
         chroma_client = chromadb.PersistentClient(path=chroma_db_path)
         collection = chroma_client.get_or_create_collection(name="schedule")
-    return model, collection
+    return chroma_client, collection
 
 class QueryRequest(BaseModel):
     question: str
@@ -78,7 +85,7 @@ def get_status():
 @app.post("/api/reindex")
 def reindex_database():
     try:
-        model_local, coll = get_resources()
+        _, coll = get_resources()
         docs = fetch_db_roster()
         if not docs:
             raise HTTPException(status_code=400, detail="No data extracted from SQL Server database.")
@@ -91,9 +98,9 @@ def reindex_database():
             pass
         coll = chroma_client.create_collection(name="schedule")
         
-        # Embed
+        # Embed using Gemini API
         texts = [doc['text'] for doc in docs]
-        embeddings_list = [emb.tolist() for emb in model_local.embed(texts)]
+        embeddings_list = [get_embedding(t) for t in texts]
         
         # Insert
         ids = [f"doc_{i}" for i in range(len(docs))]
@@ -226,7 +233,7 @@ def query_roster(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
         
     try:
-        model_local, coll = get_resources()
+        _, coll = get_resources()
         
         # If DB is empty, advise re-indexing
         if coll.count() == 0:
@@ -239,6 +246,9 @@ def query_roster(request: QueryRequest):
         retrieved_metadatas = []
         filter_applied = None
         
+        # Dummy vector matching dimensionality
+        dummy_vec = [0.0] * 384
+        
         # 1. Resolve relative dates ("this weekend", "today", "tomorrow", "this saturday", etc.)
         relative_dates = extract_weekend_dates_from_query(question)
         if relative_dates:
@@ -247,7 +257,7 @@ def query_roster(request: QueryRequest):
             all_metas = []
             for rd in relative_dates:
                 results = coll.query(
-                    query_embeddings=[[0.0]*384],
+                    query_embeddings=[dummy_vec],
                     where={"date": rd},
                     n_results=1
                 )
@@ -267,7 +277,7 @@ def query_roster(request: QueryRequest):
             if date_filter:
                 print(f"[HYBRID] Extracted date filter: {date_filter}")
                 results = coll.query(
-                    query_embeddings=[[0.0]*384],
+                    query_embeddings=[dummy_vec],
                     where={"date": date_filter},
                     n_results=1
                 )
@@ -282,7 +292,7 @@ def query_roster(request: QueryRequest):
             if week_filter:
                 print(f"[HYBRID] Extracted week filter: {week_filter}")
                 results = coll.query(
-                    query_embeddings=[[0.0]*384],
+                    query_embeddings=[dummy_vec],
                     where={"week": week_filter},
                     n_results=10
                 )
@@ -296,7 +306,7 @@ def query_roster(request: QueryRequest):
         # 4. Fallback to standard vector similarity search
         if not retrieved_docs:
             print(f"[HYBRID] Falling back to semantic search for query: '{question}'")
-            query_vector = list(model_local.embed([question]))[0].tolist()
+            query_vector = get_embedding(question)
             results = coll.query(
                 query_embeddings=[query_vector],
                 n_results=7
