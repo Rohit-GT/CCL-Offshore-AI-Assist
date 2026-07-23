@@ -22,5 +22,8 @@ COPY . .
 # Create static directory if not present
 RUN mkdir -p static chroma_db
 
-# Start FastAPI application listening on PORT assigned by host (defaults to 10000)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}"]
+# Expose Render default web service port
+EXPOSE 10000
+
+# Start FastAPI application listening on port 10000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
