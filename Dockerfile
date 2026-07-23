@@ -3,6 +3,13 @@ FROM python:3.10-slim
 # Set working directory
 WORKDIR /app
 
+# Set memory & CPU thread limits for 512MB RAM environment
+ENV OMP_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV OPENBLAS_NUM_THREADS=1
+ENV VECLIB_MAXIMUM_THREADS=1
+ENV NUMEXPR_NUM_THREADS=1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

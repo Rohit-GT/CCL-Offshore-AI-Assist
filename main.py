@@ -1,5 +1,9 @@
 import os
 import time
+import torch
+# Limit PyTorch memory & thread overhead for 512MB RAM environments
+torch.set_num_threads(1)
+
 from dotenv import load_dotenv
 import google.generativeai as genai
 import chromadb
