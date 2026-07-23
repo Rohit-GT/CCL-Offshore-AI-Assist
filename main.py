@@ -1,13 +1,9 @@
 import os
 import time
-import torch
-# Limit PyTorch memory & thread overhead for 512MB RAM environments
-torch.set_num_threads(1)
-
 from dotenv import load_dotenv
 import google.generativeai as genai
 import chromadb
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,11 +41,11 @@ chroma_client = None
 collection = None
 
 def get_resources():
-    """Lazily load and cache models and database connections to speed up startup"""
+    """Lazily load and cache lightweight ONNX models and database connections"""
     global model, chroma_client, collection
     if model is None:
-        print("Loading local SentenceTransformer model...")
-        model = SentenceTransformer('all-MiniLM-L6-v2')
+        print("Loading lightweight fastembed ONNX model...")
+        model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
     if chroma_client is None:
         print("Connecting to ChromaDB...")
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -97,8 +93,7 @@ def reindex_database():
         
         # Embed
         texts = [doc['text'] for doc in docs]
-        embeddings = model_local.encode(texts)
-        embeddings_list = [emb.tolist() for emb in embeddings]
+        embeddings_list = [emb.tolist() for emb in model_local.embed(texts)]
         
         # Insert
         ids = [f"doc_{i}" for i in range(len(docs))]
@@ -301,7 +296,7 @@ def query_roster(request: QueryRequest):
         # 4. Fallback to standard vector similarity search
         if not retrieved_docs:
             print(f"[HYBRID] Falling back to semantic search for query: '{question}'")
-            query_vector = model_local.encode(question).tolist()
+            query_vector = list(model_local.embed([question]))[0].tolist()
             results = coll.query(
                 query_embeddings=[query_vector],
                 n_results=7
