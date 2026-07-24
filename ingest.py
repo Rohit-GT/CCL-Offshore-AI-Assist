@@ -1,7 +1,6 @@
 import os
 import datetime
 import subprocess
-from sentence_transformers import SentenceTransformer
 import chromadb
 
 def clean_val(val):
