@@ -161,10 +161,11 @@
         const btnSpinner = document.getElementById('btn-spinner');
         const btnText = document.getElementById('btn-text');
         
-        // Fetch Database Status on Load
-        async function fetchStatus() {
+        // Fetch Database Status on Load with auto-retry for free tier wake-ups
+        async function fetchStatus(retryCount = 0) {
             try {
                 const res = await fetch('/api/status');
+                if (!res.ok) throw new Error("HTTP error " + res.status);
                 const data = await res.json();
                 
                 if (data.status === 'ready') {
@@ -182,9 +183,15 @@
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('db-status-dot').className = 'badge-dot dot-offline';
-                document.getElementById('db-status-text').innerText = 'Disconnected';
-                document.getElementById('stat-records').innerText = 'Offline';
+                if (retryCount < 8) {
+                    document.getElementById('db-status-dot').className = 'badge-dot dot-offline';
+                    document.getElementById('db-status-text').innerText = `Waking up server (${retryCount + 1}/8)...`;
+                    setTimeout(() => fetchStatus(retryCount + 1), 4000);
+                } else {
+                    document.getElementById('db-status-dot').className = 'badge-dot dot-offline';
+                    document.getElementById('db-status-text').innerText = 'Disconnected';
+                    document.getElementById('stat-records').innerText = 'Offline';
+                }
             }
         }
 
