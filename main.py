@@ -3,6 +3,7 @@ import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 import chromadb
+from fastembed import TextEmbedding
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,31 +36,23 @@ app.add_middleware(
 )
 
 # Lazy loading variables
+model = None
 chroma_client = None
 collection = None
 
-def get_embedding(text: str) -> list:
-    """Generate vector embedding using Gemini Cloud API (0 MB server RAM)"""
-    try:
-        response = genai.embed_content(
-            model="models/text-embedding-004",
-            content=text
-        )
-        return response['embedding']
-    except Exception as e:
-        print(f"[EMBED ERROR] {e}")
-        return [0.0] * 768
-
 def get_resources():
-    """Lazily load database connections"""
-    global chroma_client, collection
+    """Lazily load lightweight ONNX 384-dim embedding model and database connections"""
+    global model, chroma_client, collection
+    if model is None:
+        print("Loading fastembed ONNX 384-dim model...")
+        model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
     if chroma_client is None:
         print("Connecting to ChromaDB...")
         current_dir = os.path.dirname(os.path.abspath(__file__))
         chroma_db_path = os.path.join(current_dir, "chroma_db")
         chroma_client = chromadb.PersistentClient(path=chroma_db_path)
         collection = chroma_client.get_or_create_collection(name="schedule")
-    return chroma_client, collection
+    return model, collection
 
 class QueryRequest(BaseModel):
     question: str
@@ -85,7 +78,7 @@ def get_status():
 @app.post("/api/reindex")
 def reindex_database():
     try:
-        _, coll = get_resources()
+        model_local, coll = get_resources()
         docs = fetch_db_roster()
         if not docs:
             raise HTTPException(status_code=400, detail="No data extracted from SQL Server database.")
@@ -98,9 +91,9 @@ def reindex_database():
             pass
         coll = chroma_client.create_collection(name="schedule")
         
-        # Embed using Gemini API
+        # Embed using fastembed ONNX 384-dim model
         texts = [doc['text'] for doc in docs]
-        embeddings_list = [get_embedding(t) for t in texts]
+        embeddings_list = [emb.tolist() for emb in model_local.embed(texts)]
         
         # Insert
         ids = [f"doc_{i}" for i in range(len(docs))]
@@ -233,7 +226,7 @@ def query_roster(request: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
         
     try:
-        _, coll = get_resources()
+        model_local, coll = get_resources()
         
         # If DB is empty, advise re-indexing
         if coll.count() == 0:
@@ -246,7 +239,7 @@ def query_roster(request: QueryRequest):
         retrieved_metadatas = []
         filter_applied = None
         
-        # Dummy vector matching dimensionality
+        # Dummy vector matching 384 dimensionality
         dummy_vec = [0.0] * 384
         
         # 1. Resolve relative dates ("this weekend", "today", "tomorrow", "this saturday", etc.)
@@ -306,7 +299,7 @@ def query_roster(request: QueryRequest):
         # 4. Fallback to standard vector similarity search
         if not retrieved_docs:
             print(f"[HYBRID] Falling back to semantic search for query: '{question}'")
-            query_vector = get_embedding(question)
+            query_vector = list(model_local.embed([question]))[0].tolist()
             results = coll.query(
                 query_embeddings=[query_vector],
                 n_results=7
