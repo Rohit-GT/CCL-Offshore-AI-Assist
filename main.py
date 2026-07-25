@@ -344,7 +344,7 @@ ANSWER:
 """
         
         # 5. Generate content using Gemini
-        llm = genai.GenerativeModel("gemini-2.0-flash")
+        llm = genai.GenerativeModel("gemini-flash-latest")
         
         answer_text = "Error: Could not retrieve answer."
         
@@ -354,11 +354,12 @@ ANSWER:
                 response = llm.generate_content(prompt)
                 answer_text = response.text
                 break
-            except ResourceExhausted:
-                print(f"[WAIT] ResourceExhausted. Waiting to retry (attempt {attempt+1}/3)...")
-                time.sleep(10)
+            except ResourceExhausted as e:
+                print(f"[WAIT] ResourceExhausted ({e}). Waiting to retry (attempt {attempt+1}/3)...")
+                time.sleep(5)
             except Exception as e:
                 answer_text = f"API Error: {str(e)}"
+                print(f"[API ERROR] {e}")
                 break
                 
         # 6. Format sources list for the frontend
