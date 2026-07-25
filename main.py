@@ -344,7 +344,7 @@ ANSWER:
 """
         
         # 5. Generate content using Gemini
-        llm = genai.GenerativeModel("gemini-2.5-flash")
+        llm = genai.GenerativeModel("gemini-2.0-flash")
         
         answer_text = "Error: Could not retrieve answer."
         
