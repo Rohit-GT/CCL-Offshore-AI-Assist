@@ -219,6 +219,36 @@ def extract_week_from_query(query: str) -> str:
         return f"Week {week_num}"
     return None
 
+def extract_month_prefix_from_query(query: str) -> str:
+    """
+    Detects if the query asks about a whole month (e.g. 'August', 'who is working in August', 'July schedule')
+    without specifying an exact single day, and returns the 'YYYY-MM' prefix string (e.g. '2026-08').
+    """
+    import re
+    query_lower = query.lower()
+    months = {
+        "april": "2026-04",
+        "may": "2026-05",
+        "june": "2026-06",
+        "july": "2026-07",
+        "august": "2026-08",
+        "september": "2026-09",
+        "october": "2026-10",
+        "november": "2026-11",
+        "december": "2026-12"
+    }
+    
+    # Ensure user did not specify an exact day number (e.g., "August 13th" or "August 5")
+    has_exact_day = re.search(r'\b(april|may|june|july|august|september|october|november|december)\s+\d{1,2}\b', query_lower)
+    if has_exact_day:
+        return None
+        
+    for month_name, prefix in months.items():
+        if month_name in query_lower:
+            return prefix
+            
+    return None
+
 @app.post("/api/query", response_model=QueryResponse)
 def query_roster(request: QueryRequest):
     question = request.question.strip()
@@ -295,6 +325,19 @@ def query_roster(request: QueryRequest):
                     retrieved_docs = [z[0] for z in zipped]
                     retrieved_metadatas = [z[1] for z in zipped]
                     filter_applied = f"Week Filter: {week_filter}"
+                    
+        # 3.5. Try month-based metadata filtering (e.g. "August", "who is working in August", "July schedule")
+        if not retrieved_docs:
+            month_prefix = extract_month_prefix_from_query(question)
+            if month_prefix:
+                print(f"[HYBRID] Extracted month filter: {month_prefix}")
+                all_res = coll.get()
+                if all_res['documents']:
+                    zipped = [(d, m) for d, m in zip(all_res['documents'], all_res['metadatas']) if m.get('date', '').startswith(month_prefix)]
+                    zipped.sort(key=lambda x: x[1].get('date', ''))
+                    retrieved_docs = [z[0] for z in zipped]
+                    retrieved_metadatas = [z[1] for z in zipped]
+                    filter_applied = f"Month Filter: {month_prefix}"
                     
         # 4. Fallback to standard vector similarity search
         if not retrieved_docs:

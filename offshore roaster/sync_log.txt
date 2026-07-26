@@ -4349,3 +4349,360 @@ Changed database context to 'OffshoreShiftRosterDB'.
 Synchronization completed successfully!
 Sync process finished. 
 ---------------------------------------- 
+Starting Shift Roster Sync: Sun 07/26/2026  9:00:02.10 
+Prepared SQL script with 174 rows.
+Executing sqlcmd...
+SQL Server execution output:
+Changed database context to 'OffshoreShiftRosterDB'.
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+(1 rows affected)
+
+Synchronization completed successfully!
+Sync process finished. 
+---------------------------------------- 
