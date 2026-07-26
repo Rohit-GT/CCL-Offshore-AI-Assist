@@ -20,11 +20,31 @@ def clean_value(val):
     return f"N'{str(val)}'"
 
 def main():
-    excel_path = r'c:\Users\CCL-04\ai_project\April - July schedule.xlsx'
-    sql_output_path = r'c:\Users\CCL-04\ai_project\insert_roster.sql'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Auto-detect any .xlsx schedule file in the directory
+    excel_path = None
+    for f in os.listdir(current_dir):
+        if f.endswith('.xlsx') and not f.startswith('~$'):
+            excel_path = os.path.join(current_dir, f)
+            break
+            
+    if not excel_path:
+        # Fallback to parent directory if in a subfolder
+        parent_dir = os.path.dirname(current_dir)
+        for f in os.listdir(parent_dir):
+            if f.endswith('.xlsx') and not f.startswith('~$'):
+                excel_path = os.path.join(parent_dir, f)
+                break
+                
+    if not excel_path or not os.path.exists(excel_path):
+        raise FileNotFoundError(f"Could not find any .xlsx Excel schedule file in '{current_dir}'!")
+        
+    sql_output_path = os.path.join(current_dir, 'insert_roster.sql')
+    print(f"Loading Excel file from: {excel_path}")
     
     wb = openpyxl.load_workbook(excel_path)
-    ws = wb['April 13  July 13 schedule']
+    ws = wb.active # Automatically uses the active worksheet
     
     # Extract headers exactly as they are in row 1
     headers = [cell.value for cell in ws[1]]
