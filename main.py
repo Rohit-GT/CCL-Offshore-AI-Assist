@@ -117,30 +117,42 @@ def reindex_database():
         raise HTTPException(status_code=500, detail=str(e))
 
 def extract_date_from_query(query: str) -> str:
+    """
+    Parses natural language queries like 'August 15', '15th of august', '2026-08-15', '08/15'
+    and returns exact 'YYYY-MM-DD' formatted string.
+    """
     import re
     query = query.lower()
     months = {
-        "april": "04",
+        "january": "01", "jan": "01",
+        "february": "02", "feb": "02",
+        "march": "03", "mar": "03",
+        "april": "04", "apr": "04",
         "may": "05",
-        "june": "06",
-        "july": "07"
+        "june": "06", "jun": "06",
+        "july": "07", "jul": "07",
+        "august": "08", "aug": "08",
+        "september": "09", "sep": "09", "sept": "09",
+        "october": "10", "oct": "10",
+        "november": "11", "nov": "11",
+        "december": "12", "dec": "12"
     }
     
     # 1. Check for standard YYYY-MM-DD pattern
-    match_iso = re.search(r'\b(2026)-(0[4-7]|1[0-2])-([0-2][0-9]|3[0-1])\b', query)
+    match_iso = re.search(r'\b(2026)-(0[1-9]|1[0-2])-([0-2][0-9]|3[0-1])\b', query)
     if match_iso:
         return f"{match_iso.group(1)}-{match_iso.group(2)}-{match_iso.group(3)}"
         
     # 2. Check for MM-DD or M-D patterns (assuming year 2026)
-    # e.g., 04-13 or 4/13 or 04/13
-    match_slash = re.search(r'\b(0?[4-7])[-/]([0-2]?[0-9]|3[0-1])\b', query)
+    # e.g., 08-15 or 8/15 or 08/15
+    match_slash = re.search(r'\b(0?[1-9]|1[0-2])[-/]([0-2]?[0-9]|3[0-1])\b', query)
     if match_slash:
         m = int(match_slash.group(1))
         d = int(match_slash.group(2))
         return f"2026-{m:02d}-{d:02d}"
         
     # 3. Check for text month and day
-    # e.g. "april 13", "13th of april", "april 13th"
+    # e.g. "august 15", "15th of august", "august 15th"
     for month_name, month_num in months.items():
         if month_name in query:
             numbers = re.findall(r'\b([1-9]|[1-2][0-9]|3[0-1])\b', query.replace(month_name, ''))
