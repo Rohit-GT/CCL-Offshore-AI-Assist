@@ -87,7 +87,6 @@ body {
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-color);
     margin-bottom: 16px;
-    position: relative;
 }
 
 .logo-container {
@@ -106,14 +105,7 @@ body {
     border: 1px solid var(--border-color);
 }
 
-.header-title-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-}
-
-.header-title-center h1 {
+.logo-container h1 {
     font-family: var(--font-heading);
     font-size: 24px;
     font-weight: 700;
@@ -123,7 +115,7 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
-.header-title-center h1 span {
+.logo-container h1 span {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
