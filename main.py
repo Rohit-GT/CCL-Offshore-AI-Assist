@@ -411,31 +411,36 @@ QUESTION:
 ANSWER:
 """
         
-        # 5. Generate content using Gemini with Multi-Model Fallback & Retry
-        models_to_try = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-2.0-flash"]
-        answer_text = "Rate limit reached (Google Free Tier). Please wait 10-15 seconds before asking your next question."
+        # 5. Generate content using Gemini with Multi-Model Fallback & Direct Smart Roster Fallback
+        models_to_try = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash"]
+        answer_text = None
         
-        success = False
         for model_name in models_to_try:
-            if success:
+            if answer_text:
                 break
             try:
                 llm = genai.GenerativeModel(model_name)
-                for attempt in range(3):
+                for attempt in range(2):
                     try:
                         response = llm.generate_content(prompt)
-                        answer_text = response.text
-                        success = True
-                        break
+                        if response and response.text:
+                            answer_text = response.text
+                            break
                     except ResourceExhausted:
-                        print(f"[WAIT] Rate limit on {model_name} (attempt {attempt+1}/3). Retrying in 4s...")
-                        time.sleep(4)
+                        time.sleep(1.5)
                     except Exception as e:
-                        print(f"[API ERROR on {model_name}] {e}")
+                        print(f"[API NOTICE on {model_name}] {e}")
                         break
             except Exception as ex:
-                print(f"[MODEL FAIL {model_name}] {ex}")
+                print(f"[MODEL NOTICE {model_name}] {ex}")
                 continue
+                
+        # Smart Direct Roster Fallback if LLM API Quota is temporarily exhausted
+        if not answer_text or "Rate limit" in answer_text or "Error" in answer_text:
+            lines = ["📅 **Active Shift Schedule Details:**\n"]
+            for doc in retrieved_docs:
+                lines.append(f"• {doc.strip()}")
+            answer_text = "\n".join(lines)
                 
         # 6. Format sources list for the frontend
         sources = []
