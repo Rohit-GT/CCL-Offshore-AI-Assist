@@ -411,24 +411,32 @@ QUESTION:
 ANSWER:
 """
         
-        # 5. Generate content using Gemini
-        llm = genai.GenerativeModel("gemini-flash-latest")
+        # 5. Generate content using Gemini with Multi-Model Fallback & Retry
+        models_to_try = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+        answer_text = "Rate limit reached (Google Free Tier). Please wait 10-15 seconds before asking your next question."
         
-        answer_text = "Error: Could not retrieve answer."
-        
-        # Simple retry logic for free tier limits
-        for attempt in range(3):
+        success = False
+        for model_name in models_to_try:
+            if success:
+                break
             try:
-                response = llm.generate_content(prompt)
-                answer_text = response.text
-                break
-            except ResourceExhausted as e:
-                print(f"[WAIT] ResourceExhausted ({e}). Waiting to retry (attempt {attempt+1}/3)...")
-                time.sleep(5)
-            except Exception as e:
-                answer_text = f"API Error: {str(e)}"
-                print(f"[API ERROR] {e}")
-                break
+                llm = genai.GenerativeModel(model_name)
+                for attempt in range(3):
+                    try:
+                        response = llm.generate_content(prompt)
+                        answer_text = response.text
+                        success = True
+                        break
+                    except ResourceExhausted:
+                        print(f"[WAIT] Rate limit on {model_name} (attempt {attempt+1}/3). Retrying in {3 * (attempt + 1)}s...")
+                        time.sleep(3 * (attempt + 1))
+                    except Exception as e:
+                        print(f"[API ERROR on {model_name}] {e}")
+                        answer_text = f"API Error: {str(e)}"
+                        break
+            except Exception as ex:
+                print(f"[MODEL FAIL {model_name}] {ex}")
+                continue
                 
         # 6. Format sources list for the frontend
         sources = []
