@@ -412,7 +412,7 @@ ANSWER:
 """
         
         # 5. Generate content using Gemini with Multi-Model Fallback & Retry
-        models_to_try = ["gemini-flash-latest", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+        models_to_try = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-2.0-flash"]
         answer_text = "Rate limit reached (Google Free Tier). Please wait 10-15 seconds before asking your next question."
         
         success = False
@@ -428,11 +428,10 @@ ANSWER:
                         success = True
                         break
                     except ResourceExhausted:
-                        print(f"[WAIT] Rate limit on {model_name} (attempt {attempt+1}/3). Retrying in {3 * (attempt + 1)}s...")
-                        time.sleep(3 * (attempt + 1))
+                        print(f"[WAIT] Rate limit on {model_name} (attempt {attempt+1}/3). Retrying in 4s...")
+                        time.sleep(4)
                     except Exception as e:
                         print(f"[API ERROR on {model_name}] {e}")
-                        answer_text = f"API Error: {str(e)}"
                         break
             except Exception as ex:
                 print(f"[MODEL FAIL {model_name}] {ex}")
